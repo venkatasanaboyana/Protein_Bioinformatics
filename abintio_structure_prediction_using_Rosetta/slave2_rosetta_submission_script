@@ -1,0 +1,80 @@
+#!/bin/bash
+
+node=$1
+num_jobs=$2
+num_structs=$3
+membrane=$4
+gremlin=$5
+cwd=$6
+
+k=0
+for (( i=0; i<=$num_jobs-1; i++ )); do
+  k=$(($k + 1))
+  cd $cwd
+  mkdir RUN"_"$node"_job"$k
+  cd RUN_$node"_job"$k
+  echo "submitting rosetta job" $node $k
+  cp ../query.fasta .
+  cp ../query.ss2   .
+  cp ../*weights*   .
+  ln ../frags.200.3mers .
+  ln ../frags.200.9mers .
+  ln ../frags.fsc.200.3mers .
+  ln ../frags.fsc.200.9mers .
+
+# note that our "membrane" protocol below is the simplified one mentioned by the Baker group in eLife 2015...
+# do the following if gremlin and membrane 
+
+  if [ $gremlin = "GREMLIN" ] && [ $membrane = "MEMBRANE" ] 
+  then
+    cp ../query.constraints .
+    /home/LAB/BIN/rosetta_bin_linux_2018.09.60072_bundle/main/source/bin/AbinitioRelax.static.linuxgccrelease -in:file:fasta query.fasta -in:file:frag3 frags.200.3mers -in:file:frag9 frags.200.9mers -psipred_ss2 query.ss2 -abinitio:relax -nstruct $3 -out:pdb -abinitio:number_3mer_frags 200 -abinitio:number_9mer_frags 200 -abinitio:use_filters true -abinitio::increase_cycles 10 -abinitio::fastrelax -abinitio::rg_reweight 0.5 -abinitio::rsd_wt_helix 0.5 -abinitio::rsd_wt_loop 0.5 -constraints:cst_weight 3 -constraints:cst_file query.constraints -constraints:cst_fa_weight 3 -constraints:cst_fa_file query.constraints -score:patch fa_sol.weights > /dev/null &
+  fi
+
+# do the following if gremlin and MEMBRANE_FULL
+
+  if [ $gremlin = "GREMLIN" ] && [ $membrane = "MEMBRANE_FULL" ] 
+  then
+    cp ../query.span   .
+    cp ../query.lips4  .
+    cp ../query.constraints .
+    /home/LAB/BIN/rosetta_bin_linux_2018.09.60072_bundle/main/source/bin/membrane_abinitio2.static.linuxgccrelease -in:file:fasta query.fasta -in:file:spanfile query.span -in:file:lipofile query.lips4 -in:file:frag3 frags.200.3mers -in:file:frag9 frags.200.9mers -psipred_ss2 query.ss2 -abinitio:membrane -score:find_neighbors_3dgrid -score:weights membrane.weights -membrane:no_interpolate_Mpair -membrane:Menv_penalties -membrane:normal_cycles 40 -membrane:normal_mag 15 -membrane:center_mag 2 -nstruct $3 -out:pdb -abinitio:number_3mer_frags 200 -abinitio:number_9mer_frags 200 -abinitio:use_filters true -constraints:cst_file query.constraints > /dev/null &
+  fi
+
+# do the following if not gremlin and membrane
+
+  if [ $gremlin = "NOGREMLIN" ] && [ $membrane = "MEMBRANE" ] 
+  then
+    /home/LAB/BIN/rosetta_bin_linux_2018.09.60072_bundle/main/source/bin/AbinitioRelax.static.linuxgccrelease -in:file:fasta query.fasta -in:file:frag3 frags.200.3mers -in:file:frag9 frags.200.9mers -psipred_ss2 query.ss2 -abinitio:relax -nstruct $3 -out:pdb -abinitio:number_3mer_frags 200 -abinitio:number_9mer_frags 200 -abinitio:use_filters true -abinitio::increase_cycles 10 -abinitio::fastrelax -abinitio::rg_reweight 0.5 -abinitio::rsd_wt_helix 0.5 -abinitio::rsd_wt_loop 0.5 -score:patch fa_sol.weights > /dev/null &
+  fi
+
+# do the following if not gremlin and MEMBRANE_FULL
+
+  if [ $gremlin = "NOGREMLIN" ] && [ $membrane = "MEMBRANE_FULL" ] 
+  then
+    cp ../query.span   .
+    cp ../query.lips4  .
+    /home/LAB/BIN/rosetta_bin_linux_2018.09.60072_bundle/main/source/bin/membrane_abinitio2.static.linuxgccrelease -in:file:fasta query.fasta -in:file:spanfile query.span -in:file:lipofile query.lips4 -in:file:frag3 frags.200.3mers -in:file:frag9 frags.200.9mers -psipred_ss2 query.ss2 -abinitio:membrane -score:find_neighbors_3dgrid -score:weights membrane.weights -membrane:no_interpolate_Mpair -membrane:Menv_penalties -membrane:normal_cycles 40 -membrane:normal_mag 15 -membrane:center_mag 2 -nstruct $3 -out:pdb -abinitio:number_3mer_frags 200 -abinitio:number_9mer_frags 200 -abinitio:use_filters true > /dev/null &
+  fi
+
+# do the following if gremlin and globular
+
+  if [ $gremlin = "GREMLIN" ] && [ $membrane = "GLOBULAR" ] 
+  then
+    cp ../query.constraints .
+    /home/LAB/BIN/rosetta_bin_linux_2018.09.60072_bundle/main/source/bin/AbinitioRelax.static.linuxgccrelease -in:file:fasta query.fasta -in:file:frag3 frags.200.3mers -in:file:frag9 frags.200.9mers -psipred_ss2 query.ss2 -abinitio:relax -nstruct $3 -out:pdb -abinitio:number_3mer_frags 200 -abinitio:number_9mer_frags 200 -abinitio:use_filters true -abinitio::increase_cycles 10 -abinitio::fastrelax -abinitio::rg_reweight 0.5 -abinitio::rsd_wt_helix 0.5 -abinitio::rsd_wt_loop 0.5 -constraints:cst_weight 3 -constraints:cst_file query.constraints -constraints:cst_fa_weight 3 -constraints:cst_fa_file query.constraints > /dev/null &
+  fi
+
+# do the following if not gremlin and globular
+
+  if [ $gremlin = "NOGREMLIN" ] && [ $membrane = "GLOBULAR" ] 
+  then
+    /home/LAB/BIN/rosetta_bin_linux_2018.09.60072_bundle/main/source/bin/AbinitioRelax.static.linuxgccrelease -in:file:fasta query.fasta -in:file:frag3 frags.200.3mers -in:file:frag9 frags.200.9mers -psipred_ss2 query.ss2 -abinitio:relax -nstruct $3 -out:pdb -abinitio:number_3mer_frags 200 -abinitio:number_9mer_frags 200 -abinitio:use_filters true -abinitio::increase_cycles 10 -abinitio::fastrelax -abinitio::rg_reweight 0.5 -abinitio::rsd_wt_helix 0.5 -abinitio::rsd_wt_loop 0.5 > /dev/null &
+  fi
+
+  cd ..
+
+done
+
+wait
+

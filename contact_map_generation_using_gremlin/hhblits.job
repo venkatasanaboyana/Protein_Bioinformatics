@@ -1,0 +1,119 @@
+#!/bin/bash
+####Last modified 06/19/2019 - VENKAT
+##
+#$ -S /bin/bash
+##
+#### This is an example submission script.
+#### The lines that begin with `#$` are used
+#### as arguments to qsub, while lines that
+#### start with just `##` are comments
+##
+#### The below lines determines how many CPUs
+#### your job will request. Only set it higher 
+#### if you need the additional memory
+####
+#### The following line requests mulitple nodes
+#### X threads per node (cpn) followed by the total
+####$ -pe 64cpn 64
+#### The following line requests a single node
+#### with X number of threads
+#$ -pe smp 28
+#### The following line request a type of cpu
+####$ -l cpu_arch=skylake_gold
+#### The below lines requests GPUs
+####
+####$ -l ngpus=4
+####$ -l gpu_1080ti=true
+#### If your job requires a specific amount of
+#### memory then use mem_XG for the amount of
+#### memory you want on a machine (192, 256, etc.)
+#####$ -l mem_192G
+##
+#### The below option determines which queues 
+#### your job is submitted to. Multiple can be
+#### passed if separated by a comma
+#### The elcock queue is called FERBIN
+#### Some other queues are UI, UI-HM, CCOM
+#$ -q FERBIN
+##
+#### The below option tells the compute node to 
+#### begin execution from the same directory as
+#### where you run the qsub. Otherwise, it is 
+#### executed from '~/' -- which is where your
+#### log file will end up. 
+#$ -cwd
+##
+#### The following options all deal with making
+#### sure your log file is in the correct format
+#$ -j y
+#$ -o $JOB_NAME.log 
+#$ -ckpt user
+#### The next options deal with email you when
+#### your job is done.
+####$ -M zachary-wehrspan@uiowa.edu
+####$ -m e
+##################
+## DON'T FORGET ##
+##  TO SET THE  ## 
+##   JOB NAME   ##
+##################
+#$ -N hhblits
+
+
+#### to submit the job:
+#### $ qsub file.job
+
+#### The below lines print the date to the log
+#### and then store it as a variable
+date
+start=`date +%s`
+
+
+########################################
+## Put the commands you are executing ##
+## inside of the " " on the next line ##
+## so they will be printed to the log ##
+########################################
+database="/Users/sanaboyana/hh-suite-databases/uniclust30_2018_08/uniclust30_2018_08"
+
+CMD="
+database="/Users/sanaboyana/hh-suite-databases/uniclust30_2018_08/uniclust30_2018_08"
+       
+	hhblits -alt 1 -i query.fasta -oa3m query.a3m -cpu 28 -d $database -n 8 -e 1E-20 -maxfilt 100000000 -neffmax 20 -nodiff -realign_max 10000000
+	hhfilter -i query.a3m -o query_cov75.a3m -id 100 -cov 75
+	hhfilter -i query_cov75.a3m -id 90 -o query_id90cov75.fas
+	/Users/sanaboyana/scripts-2019/seq_len.pl -i query_id90cov75.fas -percent 0 > seq_len_output	
+	hmmbuild --symfrac 0.0 query.hmm query_id90cov75.cut.fas
+	/Users/sanaboyana/scripts-2019/generate_fake_sto.pl PXXXXX > query.sto
+"
+
+
+#### The below commands prints the text you
+#### assigned to the CMD variable to the log
+echo "**************************************"
+echo "commands=$CMD"
+echo "**************************************"
+
+########################################
+## Put the commands you are executing ##
+##  in the lines below this comment,  ##
+##   so they are actually  executed   ##
+########################################
+
+	
+	hhblits -alt 1 -i query.fasta -oa3m query.a3m -cpu 28 -d $database -n 8 -e 1E-20 -maxfilt 100000000 -neffmax 20 -nodiff -realign_max 10000000
+        hhfilter -i query.a3m -o query_cov75.a3m -id 100 -cov 75
+        hhfilter -i query_cov75.a3m -id 90 -o query_id90cov75.fas
+	/Users/sanaboyana/scripts-2019/seq_len.pl -i query_id90cov75.fas -percent 0 > seq_len_output
+	hmmbuild --symfrac 0.0 query.hmm query_id90cov75.cut.fas
+	/Users/sanaboyana/scripts-2019/generate_fake_sto.pl PXXXXX > query.sto
+
+#### The below commands print the date that your
+#### job finished running to the log, and then
+#### calcualtes the total amount of time it took
+#### for the job to complete
+date
+end=`date +%s`
+runtime=$((end-start))
+echo "runtime=$runtime secs"
+

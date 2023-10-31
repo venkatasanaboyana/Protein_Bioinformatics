@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# arguments are:
+# (1) node on which to run
+# (2) number of jobs per node (usually 32 on a 64-core machine)
+# (3) number of structures to be made per jobs (e.g. 32: 32jobs*32structs=1024structs)
+# (4) "GLOBULAR" or "MEMBRANE" for using globular or membrane-like protocol
+# (5) "GREMLIN" or "NOGREMLIN" for using gremlin-derived constraints
+
+node=$1
+num_jobs=$2
+num_structs=$3
+membrane=$4
+gremlin=$5
+
+cwd=$(pwd)
+
+./slave_rosetta_submission_script $node $num_jobs $num_structs $membrane $gremlin $cwd &
+
+wait
+
+echo "FINALLY DONE"
+

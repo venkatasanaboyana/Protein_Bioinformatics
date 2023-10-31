@@ -1,0 +1,14 @@
+#!/bin/bash
+
+node=$1
+num_jobs=$2
+num_structs=$3
+membrane=$4
+gremlin=$5
+cwd=$6
+
+ssh $node << EOF
+cd $cwd
+./slave2_rosetta_submission_script $node $num_jobs $num_structs $membrane $gremlin $cwd
+EOF
+

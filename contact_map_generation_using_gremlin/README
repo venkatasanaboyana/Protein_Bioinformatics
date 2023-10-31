@@ -1,0 +1,12 @@
+README:
+-------
+
+Pipeline to generate structural restraints using gremlin:
+
+           "USAGE EXAMPLE: ./generate_meta_constraints_v2.0.sh PXXXXX queue_system num_threads num_jobs";
+           "PXXXXX: UNIPROT_ID";
+           "que_system: The elcock queue is called FERBIN; Some other queues are UI, UI-HM, CCOM, all.q";
+           "num_threads: Number of threads per each job (e.g. 2 threads for each of the 293 jobs)";
+           "num_jobs: Number of meta genomes per each job";
+
+output:   Gremlin_raw_contacts.txt 
